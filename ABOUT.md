@@ -1,4 +1,4 @@
-**Project Summary: Stockmeter Web Application**
+# Project Summary: Stockmeter Web Application
 
 **Stockmeter**, a modern web application designed to help investors quickly and confidently assess the fair value of global stocks using automated, industry-standard valuation models. The app makes stock analysis accessible and transparent for users of all levels.
 
