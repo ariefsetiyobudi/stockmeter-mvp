@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  email               String        @unique
+  name                String
+  passwordHash        String?
+  authProvider        String        @default("email")
+  subscriptionStatus  String        @default("free")
+  subscriptionExpiry  DateTime?
+  languagePreference  String        @default("en")
+  currencyPreference  String        @default("USD")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  
+  watchlist           Watchlist[]
+  alerts              Alert[]
+  transactions        Transaction[]
+  
+  @@index([email])
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String
+  ticker    String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, ticker])
+  @@index([userId])
+}
+
+model Alert {
+  id             String   @id @default(uuid())
+  userId         String
+  ticker         String
+  thresholdType  String
+  thresholdValue Float
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  provider    String
+  plan        String
+  amount      Float
+  currency    String   @default("USD")
+  status      String
+  externalId  String?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+}
+
+model StockCache {
+  id          String   @id @default(uuid())
+  ticker      String   @unique
+  data        Json
+  dataType    String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([ticker, dataType])
+  @@index([expiresAt])
+}
+
+model ProviderStatus {
+  id             String   @id @default(uuid())
+  provider       String   @unique
+  status         String
+  remainingCalls Int?
+  lastChecked    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([provider])
+}

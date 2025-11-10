@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Base styles for consistent appearance */
+  body {
+    @apply bg-white text-black;
+  }
+}
+
+@layer components {
+  /* Valuation status badges */
+  .badge-undervalued {
+    @apply bg-soft-green-100 text-soft-green-800 border border-soft-green-300;
+  }
+  
+  .badge-overvalued {
+    @apply bg-soft-red-100 text-soft-red-800 border border-soft-red-300;
+  }
+  
+  .badge-fair {
+    @apply bg-gray-100 text-gray-800 border border-gray-300;
+  }
+
+  /* Touch-friendly buttons for mobile */
+  .btn-touch {
+    @apply min-h-touch min-w-touch;
+  }
+
+  /* Responsive table wrapper */
+  .table-responsive {
+    @apply overflow-x-auto -mx-4 sm:mx-0;
+  }
+}
+
+@layer utilities {
+  /* Custom utilities for mobile optimization */
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth scrolling */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* GPU acceleration for animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Prevent text selection on buttons */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Orientation support */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Reduce padding in landscape mode on small screens */
+  .hero-section {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Performance optimizations */
+* {
+  /* Reduce repaints */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Optimize images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Lazy loading placeholder */
+img[loading="lazy"] {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,0 +1,17 @@
+# Root level .dockerignore for multi-service builds
+node_modules
+.git
+.gitignore
+*.md
+!README.md
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+.DS_Store
+*.log
+coverage
+dist
+.nuxt
+.output
