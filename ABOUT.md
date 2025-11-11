@@ -1,4 +1,4 @@
-# Project Summary: Stockmeter Web Application
+# Project: Stockmeter Web Application
 
 **Stockmeter**, a modern web application designed to help investors quickly and confidently assess the fair value of global stocks using automated, industry-standard valuation models. The app makes stock analysis accessible and transparent for users of all levels.
 
@@ -50,11 +50,82 @@
     - Fast, reliable performance
 
 
-### App Summary
+### Summary
 
 - A professional, secure, and scalable web application
 - All core features as listed above for both Free and Pro subscription levels
 - Documentation for deployment, development, and user operation
 - Scalable cloud deployment ready for real-world use
 - Clean, modern design tailored to your branding needs
+
+
+
+# Technical Overview - Stockmeter
+
+### System Architecture
+
+- **Full-Stack Web App** utilizing a three-tier structure (presentation, application, data layers).
+    - **Frontend:** Nuxt.js 4 (Vue 3, TailwindCSS, ApexCharts, Pinia, i18n, Vitest, Playwright)
+    - **Backend:** Node.js 20 + Express.js 5 (TypeScript), RESTful API, JWT Auth, Passport.js (Email, Google OAuth), Zod schema validation
+    - **Database:** PostgreSQL 16 (via Prisma ORM)
+    - **Caching:** Redis (ioredis)
+    - **Payment Integration:** Stripe, PayPal, Midtrans
+    - **Financial Data Providers:** Yahoo Finance (main, free), Financial Modeling Prep, Alpha Vantage (as failover/backup)
+    - **Mail Service:** SendGrid/AWS SES for email notifications
+    - **Cloud Infrastructure:** Google Cloud Run (Docker serverless), Google Cloud SQL (PostgreSQL), Google Memorystore (Redis), Cloud Build (CI/CD)
+    - **Deployment:** All services are containerized (Docker) for consistency and scalability
+
+### Core Workflow
+
+1. **Stock Search:**
+    - Frontend sends GET to `/api/stocks/search?q=query` → backend checks Redis cache (TTL 5 min) or fetches from provider via adapter pattern → returns to user, updates cache if needed.
+2. **Stock Valuation:**
+    - Frontend requests stock details/financials → backend checks cache (24h), runs automated calculations for DCF, DDM, PE/PB/PS, Graham Number (all logic automated, provider API failover supported).
+    - Results with valuation state (undervalued/fair/overvalued) and breakdown are shown in UI; breakdown detail is available for Pro users.
+3. **Batch Compare \& Watchlist:**
+    - Pro users can request batch calculation (up to 50 tickers at once, special endpoint, throttled/parallelized, cache-aware).
+    - Watchlist is a relational DB entity linked to User, with tier limit enforced at backend.
+4. **User \& Auth:**
+    - JWT (1 hour access, 30 days refresh, httpOnly cookie).
+    - Passport.js supports email, Google, Facebook logins.
+    - Passwords hashed (bcrypt 10 rounds), full CSRF protection.
+5. **Payments \& Pro Subscription:**
+    - Subscription recorded in DB, verified by payment provider webhook, status updated automatically.
+    - Payment flow is strictly frontend → backend API → provider redirect → verified by webhook.
+    - Refund, cancellation, and expiry managed via webhook automation.
+6. **Alerts:**
+    - Backend cron runs alert evaluation daily, triggers email for Pro users when target met.
+    - All alert configs are in DB, dynamic email templates are used for notifications.
+
+### Database Design (Key Schemas)
+
+- **User:** id, email, name, passwordHash, subscriptionStatus, expiry, preferences (lang/currency), timestamps
+- **Watchlist, Alert, Transaction, StockCache, ProviderStatus:** All related entities with indexed references, minimizing duplicate records.
+- **StockCache:** Layered model for search, prices, financials, fair value, with specific TTL for each data type.
+
+### Security
+
+- Passwords stored hashed (bcrypt); access \& refresh tokens managed separately.
+- No credit card data is stored—fully PCI DSS compliant.
+- All connections (db, redis) are encrypted/env-protected.
+- Payment only processed through secure redirect \& webhook signature verification.
+
+### Failover \& Optimization Strategy
+
+- Extensive caching via Redis: stock prices (5m), financials (24h), fair value (1h), peer data (24h).
+- Adapter manager enables instant failover between providers: health check logs, retry mechanism, provider switch within 5 seconds if an outage is detected.
+- API provider rate limit monitoring.
+- Optimized response via gzip, pagination, SSR, lazy loading, and frontend code splitting.
+
+### Testing \& Quality Assurance
+
+- Backend test coverage minimum 80% (Jest), frontend with Vitest, Playwright where applicable.
+- Automated integration testing: API, payments, auth, batch compare, alerts.
+- Complete manual QA checklist, separate staging environment.
+
+### DevOps \& Deployment
+
+- Local development via Docker Compose (PostgreSQL, Redis, backend, frontend).
+- Automated build pipeline (Google Cloud Build): pushes container image and deploys to Cloud Run (auto-scaling for frontend and backend).
+- All secrets managed via environment variables; CI/CD; logging and error monitoring with Google Cloud and Sentry.
 
