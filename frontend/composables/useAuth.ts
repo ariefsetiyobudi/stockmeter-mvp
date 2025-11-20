@@ -1,185 +1,79 @@
-import { useAuthStore } from '~/stores/auth';
-import type { User } from '~/types';
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface RegisterCredentials {
-  email: string;
-  password: string;
-  name: string;
-}
-
-interface AuthResult {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-}
-
-export const useAuth = () => {
-  const authStore = useAuthStore();
-  const config = useRuntimeConfig();
+export function useAuth() {
+  const { user, token, isAuthenticated, setUser, setToken, logout: storeLogout } = useAuthStore();
   const router = useRouter();
 
-  // Auto-refresh token interval (45 minutes - before 1 hour expiry)
-  let refreshInterval: NodeJS.Timeout | null = null;
-
-  const startTokenRefresh = () => {
-    if (refreshInterval) {
-      clearInterval(refreshInterval);
-    }
-
-    // Refresh token every 45 minutes
-    refreshInterval = setInterval(async () => {
-      await refreshToken();
-    }, 45 * 60 * 1000);
-  };
-
-  const stopTokenRefresh = () => {
-    if (refreshInterval) {
-      clearInterval(refreshInterval);
-      refreshInterval = null;
-    }
-  };
-
-  const login = async (credentials: LoginCredentials): Promise<void> => {
-    authStore.setLoading(true);
-    const toast = useToast();
+  const login = async (email: string, password: string) => {
     try {
-      const response = await $fetch<AuthResult>('/api/auth/login', {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        body: credentials,
-        credentials: 'include', // Include cookies
-      });
-
-      authStore.setUser(response.user);
-      authStore.setAccessToken(response.accessToken);
+      const response = await apiClient.post('/auth/login', { email, password });
+      const { token: newToken, user: newUser } = response.data;
       
-      // Start auto-refresh
-      startTokenRefresh();
+      setToken(newToken);
+      setUser(newUser);
       
-      toast.success('Login successful!');
+      return { success: true };
     } catch (error: any) {
-      console.error('Login error:', error);
-      const errorMessage = error.data?.error?.message || 'Login failed';
-      toast.error(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      authStore.setLoading(false);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Login failed',
+      };
     }
   };
 
-  const register = async (credentials: RegisterCredentials): Promise<void> => {
-    authStore.setLoading(true);
-    const toast = useToast();
+  const register = async (email: string, password: string, name: string) => {
     try {
-      const response = await $fetch<AuthResult>('/api/auth/register', {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        body: credentials,
-        credentials: 'include',
-      });
-
-      authStore.setUser(response.user);
-      authStore.setAccessToken(response.accessToken);
+      const response = await apiClient.post('/auth/register', { email, password, name });
+      const { token: newToken, user: newUser } = response.data;
       
-      // Start auto-refresh
-      startTokenRefresh();
+      setToken(newToken);
+      setUser(newUser);
       
-      toast.success('Registration successful! Welcome to Stockmeter.');
+      return { success: true };
     } catch (error: any) {
-      console.error('Registration error:', error);
-      const errorMessage = error.data?.error?.message || 'Registration failed';
-      toast.error(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      authStore.setLoading(false);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed',
+      };
     }
   };
 
-  const logout = async (): Promise<void> => {
-    authStore.setLoading(true);
-    const toast = useToast();
+  const logout = () => {
+    storeLogout();
+    router.push('/login');
+  };
+
+  const refreshUser = async () => {
+    if (!token) return;
+    
     try {
-      await $fetch('/api/auth/logout', {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        credentials: 'include',
-        headers: authStore.accessToken
-          ? { Authorization: `Bearer ${authStore.accessToken}` }
-          : {},
+      const response = await apiClient.get('/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success('Logged out successfully');
+      setUser(response.data);
     } catch (error) {
-      console.error('Logout error:', error);
-      // Don't show error toast for logout - still clear auth
-    } finally {
-      stopTokenRefresh();
-      authStore.clearAuth();
-      authStore.setLoading(false);
-      await router.push('/');
+      // Token might be invalid, logout
+      logout();
     }
   };
 
-  const refreshToken = async (): Promise<void> => {
-    try {
-      const response = await $fetch<AuthResult>('/api/auth/refresh', {
-        baseURL: config.public.apiBaseUrl,
-        method: 'POST',
-        credentials: 'include',
-      });
+  const isPro = user?.subscriptionTier === 'pro' && user?.subscriptionStatus === 'active';
 
-      authStore.setUser(response.user);
-      authStore.setAccessToken(response.accessToken);
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      // If refresh fails, logout user
-      stopTokenRefresh();
-      authStore.clearAuth();
-      await router.push('/login');
-    }
-  };
-
-  const loginWithGoogle = (): void => {
-    // Redirect to backend Google OAuth endpoint
-    window.location.href = `${config.public.apiBaseUrl}/api/auth/google`;
-  };
-
-  const loginWithFacebook = (): void => {
-    // Redirect to backend Facebook OAuth endpoint
-    window.location.href = `${config.public.apiBaseUrl}/api/auth/facebook`;
-  };
-
-  const checkAuth = async (): Promise<void> => {
-    // Try to refresh token on app load to restore session
-    if (!authStore.isAuthenticated) {
-      try {
-        await refreshToken();
-        startTokenRefresh();
-      } catch (error) {
-        // User not authenticated, that's okay
-      }
-    }
+  const checkAuth = async () => {
+    await refreshUser();
   };
 
   return {
-    // State
-    user: computed(() => authStore.user),
-    isAuthenticated: computed(() => authStore.isAuthenticated),
-    isPro: computed(() => authStore.isPro),
-    isFree: computed(() => authStore.isFree),
-    isLoading: computed(() => authStore.isLoading),
-    
-    // Methods
+    user,
+    token,
+    isAuthenticated,
+    isPro,
     login,
     register,
     logout,
-    refreshToken,
-    loginWithGoogle,
-    loginWithFacebook,
+    refreshUser,
     checkAuth,
   };
-};
+}

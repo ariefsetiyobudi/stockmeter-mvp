@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* Requirements: 12.4, 12.5 - Mobile performance optimizations */
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: rgb(249 250 251);
+  color: rgb(17 24 39);
+  overflow-x: hidden;
+}
+
+* {
+  border-color: rgb(229 231 235);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling for better UX */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Optimize touch interactions on mobile (Requirements: 12.2) */
+button, 
+a, 
+input, 
+select, 
+textarea {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* GPU acceleration for better mobile performance (Requirements: 12.4) */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Optimize scrolling on mobile (Requirements: 12.4) */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent layout shift during loading (Requirements: 12.4) */
+.aspect-ratio-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-ratio-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+.aspect-ratio-1-1 {
+  aspect-ratio: 1 / 1;
+}

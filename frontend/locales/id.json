@@ -43,7 +43,9 @@
     "compare": "Bandingkan",
     "alerts": "Peringatan",
     "pricing": "Harga",
-    "profile": "Profil"
+    "profile": "Profil",
+    "login": "Masuk",
+    "register": "Daftar"
   },
   "home": {
     "title": "Temukan Nilai Sebenarnya dari Saham",

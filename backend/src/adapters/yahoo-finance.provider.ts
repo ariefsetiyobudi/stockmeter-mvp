@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
 import {
-  IFinancialDataProvider,
   StockSearchResult,
   StockProfile,
   StockPrice,
@@ -10,7 +9,7 @@ import {
 } from '../types';
 import { logger } from '../utils/logger';
 
-export class YahooFinanceProvider implements IFinancialDataProvider {
+export class YahooFinanceProvider {
   private client: AxiosInstance;
   private baseUrl = 'https://query2.finance.yahoo.com';
 
@@ -248,15 +247,22 @@ export class YahooFinanceProvider implements IFinancialDataProvider {
             const stats = data?.defaultKeyStatistics || {};
             const summary = data?.summaryDetail || {};
 
+            const peValue = stats.trailingPE?.raw || summary.trailingPE?.raw || 0;
+            const pbValue = stats.priceToBook?.raw || 0;
+            const psValue = stats.priceToSalesTrailing12Months?.raw || 0;
+            
             peers.push({
               ticker: result.ticker,
               name: peerProfile.name,
               sector: peerProfile.sector,
               industry: peerProfile.industry,
               marketCap: peerProfile.marketCap,
-              peRatio: stats.trailingPE?.raw || summary.trailingPE?.raw || null,
-              pbRatio: stats.priceToBook?.raw || null,
-              psRatio: stats.priceToSalesTrailing12Months?.raw || null,
+              pe: peValue,
+              pb: pbValue,
+              ps: psValue,
+              peRatio: peValue || null,
+              pbRatio: pbValue || null,
+              psRatio: psValue || null,
             });
 
             if (peers.length >= 10) break;

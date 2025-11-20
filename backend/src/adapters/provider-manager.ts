@@ -1,5 +1,4 @@
 import {
-  IFinancialDataProvider,
   StockSearchResult,
   StockProfile,
   StockPrice,
@@ -10,6 +9,9 @@ import { logger } from '../utils/logger';
 import { YahooFinanceProvider } from './yahoo-finance.provider';
 import { FMPProvider } from './fmp.provider';
 import { AlphaVantageProvider } from './alpha-vantage.provider';
+
+// Type alias for financial data providers
+type IFinancialDataProvider = YahooFinanceProvider | FMPProvider | AlphaVantageProvider;
 
 interface ProviderHealth {
   name: string;

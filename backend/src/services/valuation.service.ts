@@ -1,5 +1,4 @@
 import {
-  IValuationService,
   DCFResult,
   DDMResult,
   RelativeValueResult,
@@ -19,7 +18,7 @@ const logger = createLogger('ValuationService');
 /**
  * ValuationService calculates fair value using multiple valuation models
  */
-export class ValuationService implements IValuationService {
+export class ValuationService {
   private providerManager: ProviderManager;
   private cacheService = getCacheService();
 
@@ -255,9 +254,9 @@ export class ValuationService implements IValuationService {
         : null;
 
       // Calculate industry medians
-      const peerPEs = peers.map(p => p.peRatio).filter(r => r !== null && r > 0) as number[];
-      const peerPBs = peers.map(p => p.pbRatio).filter(r => r !== null && r > 0) as number[];
-      const peerPSs = peers.map(p => p.psRatio).filter(r => r !== null && r > 0) as number[];
+      const peerPEs = peers.map(p => p.peRatio ?? p.pe).filter(r => r !== null && r > 0) as number[];
+      const peerPBs = peers.map(p => p.pbRatio ?? p.pb).filter(r => r !== null && r > 0) as number[];
+      const peerPSs = peers.map(p => p.psRatio ?? p.ps).filter(r => r !== null && r > 0) as number[];
 
       const medianPE = peerPEs.length > 0 ? this.calculateMedian(peerPEs) : null;
       const medianPB = peerPBs.length > 0 ? this.calculateMedian(peerPBs) : null;
@@ -374,16 +373,22 @@ export class ValuationService implements IValuationService {
         this.providerManager.executeWithFailover(p => p.getIndustryPeers(ticker)),
       ]);
 
+      // Type assertions for provider results
+      const typedStockProfile = stockProfile as StockProfile;
+      const typedPrice = price as { price: number };
+      const typedFinancials = financials as FinancialStatements;
+      const typedPeers = peers as IndustryPeer[];
+
       // Calculate all models
       const [dcf, ddm, relativeValue, graham] = await Promise.all([
-        this.calculateDCF(ticker, financials, stockProfile),
-        this.calculateDDM(ticker, financials, stockProfile),
-        this.calculateRelativeValue(ticker, financials, peers, stockProfile),
-        this.calculateGrahamNumber(ticker, financials, stockProfile),
+        this.calculateDCF(ticker, typedFinancials, typedStockProfile),
+        this.calculateDDM(ticker, typedFinancials, typedStockProfile),
+        this.calculateRelativeValue(ticker, typedFinancials, typedPeers, typedStockProfile),
+        this.calculateGrahamNumber(ticker, typedFinancials, typedStockProfile),
       ]);
 
       // Determine valuation status based on 10% threshold
-      const valuationStatus = this.determineValuationStatus(price.price, [
+      const valuationStatus = this.determineValuationStatus(typedPrice.price, [
         dcf?.fairValue,
         ddm?.fairValue,
         relativeValue?.peRatioFairValue,
@@ -394,11 +399,11 @@ export class ValuationService implements IValuationService {
 
       const result: FairValueResult = {
         ticker,
-        currentPrice: price.price,
-        dcf,
-        ddm,
-        relativeValue,
-        graham,
+        currentPrice: typedPrice.price,
+        dcf: dcf ?? null,
+        ddm: ddm ?? null,
+        relativeValue: relativeValue ?? null,
+        graham: graham ?? null,
         valuationStatus,
         calculatedAt: new Date(),
       };

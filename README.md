@@ -1,535 +1,286 @@
 # Stockmeter MVP
 
-A web application that automatically calculates and displays the fair value of global stocks using multiple industry-standard financial valuation models.
+Automated stock valuation platform that calculates fair value using multiple financial models including DCF, DDM, P/E ratios, and Graham Number.
+
+## Features
+
+### Free Tier
+- Single stock analysis
+- Basic fair value models (DCF, DDM, P/E, Graham Number)
+- Up to 5 watchlist stocks
+- Stock search and profile viewing
+
+### Pro Tier
+- Batch comparison (up to 50 stocks)
+- Detailed model breakdowns with assumptions
+- Unlimited watchlist
+- Price alerts and notifications
+- Export to CSV/PDF
+- Advanced analytics
+
+## Technology Stack
+
+### Backend
+- **Runtime**: Node.js 20.x LTS
+- **Framework**: Express.js 5.x
+- **Language**: TypeScript 5.x
+- **Database**: PostgreSQL 16.x with Prisma ORM
+- **Cache**: Redis 7.x with ioredis
+- **Authentication**: Passport.js (Local, Google OAuth, Facebook)
+- **Payments**: Stripe, PayPal, Midtrans
+- **Data Sources**: Yahoo Finance, Financial Modeling Prep, Alpha Vantage
+
+### Frontend
+- **Framework**: Next.js 16.x with App Router
+- **Language**: TypeScript 5.x
+- **Styling**: TailwindCSS 4.x
+- **State Management**: Zustand 5.x
+- **Data Fetching**: TanStack Query (React Query) 5.x
+- **Forms**: React Hook Form with Zod validation
+- **UI Components**: Radix UI, Headless UI
+- **Internationalization**: next-intl 4.x
+
+## Quick Start
+
+### Prerequisites
+- Node.js 20.x or higher
+- npm 10.x or higher
+- Docker and Docker Compose (for local database)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd stockmeter-mvp
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm run install:all
+   ```
+
+3. **Setup environment variables**
+   ```bash
+   # Backend
+   cp backend/.env.example backend/.env
+   # Edit backend/.env with your configuration
+   
+   # Frontend
+   cp frontend/.env.example frontend/.env.local
+   # Edit frontend/.env.local with your configuration
+   ```
+
+4. **Start database services**
+   ```bash
+   npm run docker:up
+   ```
+
+5. **Setup database**
+   ```bash
+   cd backend
+   npm run db:migrate
+   npm run db:seed
+   cd ..
+   ```
+
+6. **Start development servers**
+   ```bash
+   npm run dev
+   ```
+
+   This will start:
+   - Backend API on http://localhost:3001
+   - Frontend on http://localhost:3000
+
+### Available Scripts
+
+#### Root Level
+- `npm run dev` - Start both backend and frontend in development mode
+- `npm run build` - Build both applications for production
+- `npm run test` - Run tests for both applications
+- `npm run docker:up` - Start PostgreSQL and Redis containers
+- `npm run docker:down` - Stop database containers
+- `npm run clean` - Clean all node_modules and build artifacts
+
+#### Validation & Testing Scripts
+- `./scripts/validate-setup.sh` - Validate local development setup
+- `./scripts/test-local.sh` - Run comprehensive local tests
+- `./scripts/validate-cloud.sh` - Validate cloud deployment setup
+- `./scripts/health-check.sh` - Quick health check for running services
+
+#### Backend (`cd backend`)
+- `npm run dev` - Start backend in development mode with hot reload
+- `npm run build` - Build backend for production
+- `npm run start` - Start production backend
+- `npm run test` - Run backend tests
+- `npm run db:migrate` - Run database migrations
+- `npm run db:seed` - Seed database with initial data
+- `npm run db:studio` - Open Prisma Studio
+
+#### Frontend (`cd frontend`)
+- `npm run dev` - Start frontend in development mode
+- `npm run build` - Build frontend for production
+- `npm run start` - Start production frontend
+- `npm run test` - Run frontend tests
+- `npm run lint` - Run ESLint
 
 ## Project Structure
 
 ```
 stockmeter-mvp/
-├── backend/          # Express.js API server
+├── backend/                 # Express.js API
 │   ├── src/
-│   │   ├── routes/      # API route handlers
-│   │   ├── services/    # Business logic services
-│   │   ├── adapters/    # External API adapters
-│   │   ├── middleware/  # Express middleware
-│   │   └── types/       # TypeScript type definitions
+│   │   ├── adapters/       # External API integrations
+│   │   ├── config/         # Configuration files
+│   │   ├── middleware/     # Express middleware
+│   │   ├── routes/         # API route handlers
+│   │   ├── services/       # Business logic
+│   │   ├── types/          # TypeScript type definitions
+│   │   ├── utils/          # Utility functions
+│   │   └── index.ts        # Application entry point
+│   ├── prisma/             # Database schema and migrations
 │   ├── package.json
 │   └── tsconfig.json
-├── frontend/         # Nuxt 4 application
-│   ├── pages/          # Vue pages
-│   ├── components/     # Vue components
-│   ├── composables/    # Vue composables
-│   ├── types/          # TypeScript type definitions
-│   ├── locales/        # i18n translations
+├── frontend/               # Next.js application
+│   ├── app/                # Next.js 16 App Router pages
+│   ├── components/         # Reusable React components
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utility libraries
+│   ├── stores/             # Zustand state stores
+│   ├── types/              # TypeScript type definitions
 │   ├── package.json
-│   └── nuxt.config.ts
-└── docker-compose.yml  # PostgreSQL 16 + Redis 7
+│   └── next.config.ts
+├── docker-compose.yml      # Local development database
+├── package.json            # Root package.json with workspace scripts
+└── README.md
 ```
 
-## Prerequisites
+## API Documentation
 
-- Node.js 20.x LTS
-- Docker and Docker Compose
-- npm or yarn
+### Authentication Endpoints
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - Email/password login
+- `GET /api/auth/google` - Google OAuth login
+- `GET /api/auth/facebook` - Facebook OAuth login
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - Logout user
 
-## Local Development Setup
+### Stock Data Endpoints
+- `GET /api/stocks/search?q={query}` - Search stocks
+- `GET /api/stocks/{ticker}` - Get stock profile
+- `GET /api/stocks/{ticker}/financials` - Get financial statements
+- `GET /api/stocks/{ticker}/fairvalue` - Calculate fair value
+- `GET /api/stocks/{ticker}/modeldetails` - Detailed model breakdown (Pro)
 
-### 1. Start Database Services
+### User Endpoints
+- `GET /api/user/profile` - Get user profile
+- `GET /api/user/watchlist` - Get user's watchlist
+- `POST /api/user/watchlist` - Add stock to watchlist
+- `DELETE /api/user/watchlist/{ticker}` - Remove from watchlist
 
-Start PostgreSQL and Redis using Docker Compose:
+### Comparison & Export
+- `POST /api/stocks/compare` - Batch stock comparison (Pro)
+- `GET /api/download?format={csv|pdf}` - Export data (Pro)
 
-```bash
-docker-compose up -d
-```
+### Payments
+- `POST /api/payments/subscribe` - Create subscription
+- `GET /api/user/subscription` - Get subscription status
+- `POST /api/payments/webhook/{provider}` - Payment webhooks
 
-Verify services are running:
-
-```bash
-docker-compose ps
-```
-
-Services:
-- PostgreSQL 16: `localhost:5432`
-- Redis 7: `localhost:6379`
-
-**Alternative: Local Redis Installation**
-
-If you prefer to run Redis locally without Docker:
-
-```bash
-# macOS
-brew install redis
-redis-server
-
-# Ubuntu/Debian
-sudo apt-get install redis-server
-sudo systemctl start redis-server
-
-# Verify Redis is running
-redis-cli ping
-# Should return: PONG
-```
-
-### 2. Backend Setup
-
-```bash
-cd backend
-
-# Install dependencies
-npm install
-
-# Copy environment variables
-cp .env.example .env
-
-# Generate Prisma client (after Prisma schema is created)
-npm run prisma:generate
-
-# Run database migrations (after migrations are created)
-npm run prisma:migrate
-
-# Start development server
-npm run dev
-```
-
-Backend will run on http://localhost:3001
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Copy environment variables
-cp .env.example .env
-
-# Start development server
-npm run dev
-```
-
-Frontend will run on http://localhost:3000
-
-## Available Scripts
-
-### Backend
-
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Generate test coverage report
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run database migrations
-- `npm run prisma:studio` - Open Prisma Studio
-
-### Frontend
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run generate` - Generate static site
-- `npm run preview` - Preview production build
-- `npm test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:ui` - Open Vitest UI
-
-## Technology Stack
-
-### Backend
-- Node.js 20.x
-- Express.js 5.x
-- TypeScript 5.x
-- PostgreSQL 16.x
-- Prisma 5.x ORM
-- Redis (ioredis 5.x)
-- Passport.js for authentication
-- Jest for testing
-
-### Frontend
-- Nuxt 4.x
-- Vue 3.5.x
-- TypeScript 5.x
-- TailwindCSS 4.x
-- Pinia for state management
-- VueUse for composables
-- Vitest for testing
+### Alerts (Pro)
+- `GET /api/alerts` - Get user's alerts
+- `POST /api/alerts` - Create new alert
+- `DELETE /api/alerts/{id}` - Delete alert
 
 ## Environment Variables
 
-See `.env.example` files in both `backend/` and `frontend/` directories for required environment variables.
-
-## Docker Deployment
-
-### Building Docker Images
-
-#### Backend
+### Backend (.env)
 ```bash
-cd backend
-docker build -t stockmeter-backend:latest .
+# Database
+DATABASE_URL=postgresql://stockmeter:dev_password@localhost:5432/stockmeter_dev
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# JWT
+JWT_SECRET=your-secret-key
+REFRESH_TOKEN_SECRET=your-refresh-secret
+
+# Financial Data Providers
+FMP_API_KEY=your-fmp-api-key
+ALPHA_VANTAGE_API_KEY=your-alpha-vantage-key
+
+# Payment Providers
+STRIPE_SECRET_KEY=sk_test_...
+PAYPAL_CLIENT_ID=your-paypal-client-id
+MIDTRANS_SERVER_KEY=your-midtrans-key
+
+# OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-secret
 ```
 
-#### Frontend
+### Frontend (.env.local)
 ```bash
-cd frontend
-docker build -t stockmeter-frontend:latest .
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 ```
 
-### Running with Docker
-
-#### Backend Container
-```bash
-docker run -d \
-  --name stockmeter-backend \
-  -p 3001:3001 \
-  -e DATABASE_URL="postgresql://user:password@host:5432/stockmeter" \
-  -e REDIS_HOST="redis-host" \
-  -e REDIS_PORT="6379" \
-  -e JWT_SECRET="your-secret-key" \
-  stockmeter-backend:latest
-```
-
-#### Frontend Container
-```bash
-docker run -d \
-  --name stockmeter-frontend \
-  -p 3000:3000 \
-  -e NUXT_PUBLIC_API_BASE_URL="http://backend-url:3001" \
-  stockmeter-frontend:latest
-```
-
-## Google Cloud Deployment
-
-### Prerequisites
-
-1. Google Cloud account with billing enabled
-2. Google Cloud SDK (`gcloud`) installed
-3. Project created in Google Cloud Console
-
-### Initial Setup
-
-```bash
-# Login to Google Cloud
-gcloud auth login
-
-# Set your project ID
-gcloud config set project YOUR_PROJECT_ID
-
-# Enable required APIs
-gcloud services enable \
-  cloudbuild.googleapis.com \
-  run.googleapis.com \
-  sqladmin.googleapis.com \
-  redis.googleapis.com \
-  artifactregistry.googleapis.com \
-  vpcaccess.googleapis.com
-
-# Create Artifact Registry repository
-gcloud artifacts repositories create stockmeter \
-  --repository-format=docker \
-  --location=us-central1 \
-  --description="Stockmeter Docker images"
-```
-
-### Database Setup
-
-#### PostgreSQL (Cloud SQL)
-
-```bash
-# Create Cloud SQL instance
-gcloud sql instances create stockmeter-db \
-  --database-version=POSTGRES_16 \
-  --tier=db-f1-micro \
-  --region=us-central1 \
-  --root-password=YOUR_ROOT_PASSWORD
-
-# Create database
-gcloud sql databases create stockmeter \
-  --instance=stockmeter-db
-
-# Create database user
-gcloud sql users create stockmeter_user \
-  --instance=stockmeter-db \
-  --password=YOUR_USER_PASSWORD
-```
-
-#### Redis (Memorystore)
-
-```bash
-# Create Redis instance
-gcloud redis instances create stockmeter-redis \
-  --size=1 \
-  --region=us-central1 \
-  --redis-version=redis_7_0
-```
-
-### VPC Connector Setup
-
-```bash
-# Create VPC connector for Cloud Run to access Cloud SQL and Redis
-gcloud compute networks vpc-access connectors create stockmeter-connector \
-  --region=us-central1 \
-  --range=10.8.0.0/28
-```
-
-### Cloud Build Setup
-
-```bash
-# Grant Cloud Build permissions
-PROJECT_NUMBER=$(gcloud projects describe YOUR_PROJECT_ID --format="value(projectNumber)")
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member=serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com \
-  --role=roles/run.admin
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member=serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com \
-  --role=roles/iam.serviceAccountUser
-
-# Create Cloud Build trigger (manual or from GitHub)
-gcloud builds submit --config=cloudbuild.yaml
-```
-
-### Environment Variables for Cloud Run
-
-Create a `.env.yaml` file for backend secrets:
-
-```yaml
-# backend-env.yaml
-DATABASE_URL: "postgresql://stockmeter_user:password@/stockmeter?host=/cloudsql/PROJECT_ID:us-central1:stockmeter-db"
-REDIS_HOST: "REDIS_IP_ADDRESS"
-REDIS_PORT: "6379"
-JWT_SECRET: "your-production-secret"
-JWT_EXPIRY: "1h"
-REFRESH_TOKEN_EXPIRY: "30d"
-STRIPE_SECRET_KEY: "sk_live_..."
-STRIPE_WEBHOOK_SECRET: "whsec_..."
-PAYPAL_CLIENT_ID: "your-paypal-client-id"
-PAYPAL_CLIENT_SECRET: "your-paypal-secret"
-PAYPAL_MODE: "live"
-MIDTRANS_SERVER_KEY: "your-midtrans-key"
-MIDTRANS_IS_PRODUCTION: "true"
-SENDGRID_API_KEY: "your-sendgrid-key"
-FROM_EMAIL: "noreply@yourdomain.com"
-GOOGLE_CLIENT_ID: "your-google-client-id"
-GOOGLE_CLIENT_SECRET: "your-google-secret"
-GOOGLE_CALLBACK_URL: "https://api.yourdomain.com/auth/google/callback"
-FACEBOOK_APP_ID: "your-facebook-app-id"
-FACEBOOK_APP_SECRET: "your-facebook-secret"
-FACEBOOK_CALLBACK_URL: "https://api.yourdomain.com/auth/facebook/callback"
-FRONTEND_URL: "https://yourdomain.com"
-CORS_ORIGIN: "https://yourdomain.com"
-YAHOO_FINANCE_API_KEY: ""
-FMP_API_KEY: "your-fmp-key"
-ALPHA_VANTAGE_API_KEY: "your-alpha-vantage-key"
-```
-
-Deploy with environment variables:
-
-```bash
-# Deploy backend with env vars
-gcloud run deploy stockmeter-backend \
-  --image=us-central1-docker.pkg.dev/YOUR_PROJECT_ID/stockmeter/backend:latest \
-  --region=us-central1 \
-  --platform=managed \
-  --allow-unauthenticated \
-  --port=3001 \
-  --memory=512Mi \
-  --cpu=1 \
-  --min-instances=0 \
-  --max-instances=10 \
-  --timeout=60s \
-  --env-vars-file=backend-env.yaml \
-  --add-cloudsql-instances=YOUR_PROJECT_ID:us-central1:stockmeter-db \
-  --vpc-connector=stockmeter-connector
-
-# Deploy frontend
-gcloud run deploy stockmeter-frontend \
-  --image=us-central1-docker.pkg.dev/YOUR_PROJECT_ID/stockmeter/frontend:latest \
-  --region=us-central1 \
-  --platform=managed \
-  --allow-unauthenticated \
-  --port=3000 \
-  --memory=512Mi \
-  --cpu=1 \
-  --min-instances=0 \
-  --max-instances=10 \
-  --timeout=60s \
-  --set-env-vars=NUXT_PUBLIC_API_BASE_URL=https://BACKEND_URL
-```
-
-### Database Migrations
-
-Run migrations on Cloud SQL:
-
-```bash
-# Connect to Cloud SQL via proxy
-cloud_sql_proxy -instances=YOUR_PROJECT_ID:us-central1:stockmeter-db=tcp:5432
-
-# In another terminal, run migrations
-cd backend
-DATABASE_URL="postgresql://stockmeter_user:password@localhost:5432/stockmeter" npm run prisma:migrate
-```
-
-### Custom Domain Setup
-
-```bash
-# Map custom domain to Cloud Run services
-gcloud run domain-mappings create \
-  --service=stockmeter-frontend \
-  --domain=yourdomain.com \
-  --region=us-central1
-
-gcloud run domain-mappings create \
-  --service=stockmeter-backend \
-  --domain=api.yourdomain.com \
-  --region=us-central1
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### Database Connection Issues
-
-**Problem:** Backend cannot connect to PostgreSQL
-
-**Solutions:**
-- Verify PostgreSQL is running: `docker-compose ps`
-- Check DATABASE_URL in `.env` file
-- Ensure database exists: `docker exec -it stockmeter-postgres psql -U stockmeter -l`
-- Check Prisma schema is generated: `npm run prisma:generate`
-
-#### Redis Connection Issues
-
-**Problem:** Backend cannot connect to Redis
-
-**Solutions:**
-- Verify Redis is running: `docker-compose ps` or `redis-cli ping`
-- Check REDIS_HOST and REDIS_PORT in `.env` file
-- Test Redis connection: `redis-cli -h localhost -p 6379 ping`
-
-#### Build Failures
-
-**Problem:** TypeScript compilation errors
-
-**Solutions:**
-- Clear build cache: `rm -rf dist node_modules && npm install`
-- Check TypeScript version: `npx tsc --version`
-- Verify all dependencies are installed: `npm install`
-
-#### Docker Build Issues
-
-**Problem:** Docker build fails
-
-**Solutions:**
-- Check Docker daemon is running: `docker ps`
-- Clear Docker cache: `docker system prune -a`
-- Verify Dockerfile syntax
-- Check .dockerignore is not excluding required files
-
-#### Cloud Run Deployment Issues
-
-**Problem:** Service fails to start
-
-**Solutions:**
-- Check Cloud Run logs: `gcloud run services logs read stockmeter-backend --region=us-central1`
-- Verify environment variables are set correctly
-- Check Cloud SQL connection string format
-- Ensure VPC connector is properly configured
-- Verify service account has necessary permissions
-
-#### Migration Issues
-
-**Problem:** Prisma migrations fail
-
-**Solutions:**
-- Check database connection
-- Verify Prisma schema syntax: `npx prisma validate`
-- Reset database (development only): `npx prisma migrate reset`
-- Check migration history: `npx prisma migrate status`
-
-### Performance Issues
-
-**Problem:** Slow API responses
-
-**Solutions:**
-- Check Redis cache is working
-- Monitor provider API rate limits
-- Review database query performance
-- Check Cloud Run instance scaling settings
-- Enable Cloud Run request logging
-
-### Authentication Issues
-
-**Problem:** OAuth login fails
-
-**Solutions:**
-- Verify OAuth credentials in environment variables
-- Check callback URLs match OAuth provider settings
-- Ensure CORS is properly configured
-- Check JWT_SECRET is set and consistent
-
-## Monitoring and Logging
+## Development Guidelines
+
+### Code Style
+- Use TypeScript for all new code
+- Follow ESLint configuration
+- Use Prettier for code formatting
+- Write meaningful commit messages
+
+### Testing
+- Write unit tests for business logic
+- Use Jest for backend testing
+- Use Vitest + Testing Library for frontend
+- Maintain >80% code coverage
+
+### Database
+- Use Prisma migrations for schema changes
+- Never edit migration files directly
+- Always backup before major changes
+
+## Deployment
 
 ### Local Development
-
-```bash
-# View backend logs
-cd backend
-npm run dev
-
-# View frontend logs
-cd frontend
-npm run dev
-
-# View Docker logs
-docker-compose logs -f
-```
+1. Start database: `npm run docker:up`
+2. Run migrations: `cd backend && npm run db:migrate`
+3. Start services: `npm run dev`
 
 ### Production (Google Cloud)
+1. Build Docker images
+2. Deploy to Cloud Run
+3. Configure Cloud SQL (PostgreSQL)
+4. Configure Memorystore (Redis)
+5. Set environment variables
 
-```bash
-# View Cloud Run logs
-gcloud run services logs read stockmeter-backend --region=us-central1 --limit=50
+## Additional Documentation
 
-# Stream logs in real-time
-gcloud run services logs tail stockmeter-backend --region=us-central1
+More detailed documentation is available in the `docs/` folder:
+- [ABOUT.md](docs/ABOUT.md) - Detailed technical overview
+- [VERSIONS.md](docs/VERSIONS.md) - All technology versions
+- [READY_TO_USE.md](docs/READY_TO_USE.md) - Quick start guide
+- [PREFLIGHT_CHECKLIST.md](docs/PREFLIGHT_CHECKLIST.md) - Pre-deployment checklist
+- [APPLICATION_STATUS.md](docs/APPLICATION_STATUS.md) - Current status report
 
-# View Cloud SQL logs
-gcloud sql operations list --instance=stockmeter-db
+## Contributing
 
-# View Redis metrics
-gcloud redis instances describe stockmeter-redis --region=us-central1
-```
-
-## Security Best Practices
-
-1. **Environment Variables:** Never commit `.env` files to version control
-2. **Secrets Management:** Use Google Secret Manager for production secrets
-3. **Database:** Use strong passwords and restrict network access
-4. **API Keys:** Rotate API keys regularly
-5. **HTTPS:** Always use HTTPS in production
-6. **CORS:** Configure CORS to allow only trusted domains
-7. **Rate Limiting:** Implement rate limiting on API endpoints
-8. **Authentication:** Use secure JWT tokens with short expiry times
-
-## Cost Optimization
-
-### Google Cloud
-
-1. **Cloud Run:** Set min-instances to 0 for development
-2. **Cloud SQL:** Use smallest tier (db-f1-micro) for development
-3. **Redis:** Use smallest size (1GB) for development
-4. **Artifact Registry:** Clean up old images regularly
-5. **Monitoring:** Set up budget alerts
-
-```bash
-# Clean up old images
-gcloud artifacts docker images list us-central1-docker.pkg.dev/YOUR_PROJECT_ID/stockmeter/backend
-gcloud artifacts docker images delete IMAGE_PATH --delete-tags
-```
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## License
 
-ISC
+This project is proprietary software. All rights reserved.
+
+## Support
+
+For support, email support@stockmeter.com or create an issue in the repository.

@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
 import {
-  IFinancialDataProvider,
   StockSearchResult,
   StockProfile,
   StockPrice,
@@ -10,7 +9,7 @@ import {
 } from '../types';
 import { logger } from '../utils/logger';
 
-export class FMPProvider implements IFinancialDataProvider {
+export class FMPProvider {
   private client: AxiosInstance;
   private apiKey: string;
   private baseUrl = 'https://financialmodelingprep.com/api/v3';
@@ -246,15 +245,22 @@ export class FMPProvider implements IFinancialDataProvider {
 
           const ratios = ratiosResponse.data?.[0] || {};
 
+          const peValue = ratios.priceEarningsRatio || 0;
+          const pbValue = ratios.priceToBookRatio || 0;
+          const psValue = ratios.priceToSalesRatio || 0;
+          
           peers.push({
             ticker: stock.symbol,
             name: stock.companyName,
             sector: stock.sector || profile.sector,
             industry: stock.industry || profile.industry,
             marketCap: stock.marketCap || 0,
-            peRatio: ratios.priceEarningsRatio || null,
-            pbRatio: ratios.priceToBookRatio || null,
-            psRatio: ratios.priceToSalesRatio || null,
+            pe: peValue,
+            pb: pbValue,
+            ps: psValue,
+            peRatio: peValue || null,
+            pbRatio: pbValue || null,
+            psRatio: psValue || null,
           });
 
           if (peers.length >= 10) break;

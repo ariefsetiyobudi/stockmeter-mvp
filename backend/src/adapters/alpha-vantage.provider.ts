@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
 import {
-  IFinancialDataProvider,
   StockSearchResult,
   StockProfile,
   StockPrice,
@@ -10,7 +9,7 @@ import {
 } from '../types';
 import { logger } from '../utils/logger';
 
-export class AlphaVantageProvider implements IFinancialDataProvider {
+export class AlphaVantageProvider {
   private client: AxiosInstance;
   private apiKey: string;
   private baseUrl = 'https://www.alphavantage.co/query';
@@ -262,15 +261,22 @@ export class AlphaVantageProvider implements IFinancialDataProvider {
 
             const overview = overviewResponse.data;
 
+            const peValue = parseFloat(overview.PERatio) || 0;
+            const pbValue = parseFloat(overview.PriceToBookRatio) || 0;
+            const psValue = parseFloat(overview.PriceToSalesRatioTTM) || 0;
+            
             peers.push({
               ticker: result.ticker,
               name: peerProfile.name,
               sector: peerProfile.sector,
               industry: peerProfile.industry,
               marketCap: peerProfile.marketCap,
-              peRatio: parseFloat(overview.PERatio) || null,
-              pbRatio: parseFloat(overview.PriceToBookRatio) || null,
-              psRatio: parseFloat(overview.PriceToSalesRatioTTM) || null,
+              pe: peValue,
+              pb: pbValue,
+              ps: psValue,
+              peRatio: peValue || null,
+              pbRatio: pbValue || null,
+              psRatio: psValue || null,
             });
 
             if (peers.length >= 10) break;

@@ -14,10 +14,10 @@ export class EmailService {
   private fromEmail: string;
 
   constructor() {
-    this.fromEmail = process.env.FROM_EMAIL || 'noreply@stockmeter.com';
+    this.fromEmail = process.env['FROM_EMAIL'] || 'noreply@stockmeter.com';
     
     // Configure email transporter based on environment
-    if (process.env.SENDGRID_API_KEY) {
+    if (process.env['SENDGRID_API_KEY']) {
       // SendGrid configuration
       this.transporter = nodemailer.createTransport({
         host: 'smtp.sendgrid.net',
@@ -25,20 +25,20 @@ export class EmailService {
         secure: false,
         auth: {
           user: 'apikey',
-          pass: process.env.SENDGRID_API_KEY,
+          pass: process.env['SENDGRID_API_KEY'],
         },
       });
       logger.info('Email service configured with SendGrid');
-    } else if (process.env.AWS_SES_REGION) {
+    } else if (process.env['AWS_SES_REGION']) {
       // AWS SES configuration (requires AWS SDK)
       // For now, using SMTP interface
       this.transporter = nodemailer.createTransport({
-        host: `email-smtp.${process.env.AWS_SES_REGION}.amazonaws.com`,
+        host: `email-smtp.${process.env['AWS_SES_REGION']}.amazonaws.com`,
         port: 587,
         secure: false,
         auth: {
-          user: process.env.AWS_SES_ACCESS_KEY || '',
-          pass: process.env.AWS_SES_SECRET_KEY || '',
+          user: process.env['AWS_SES_ACCESS_KEY'] || '',
+          pass: process.env['AWS_SES_SECRET_KEY'] || '',
         },
       });
       logger.info('Email service configured with AWS SES');
@@ -50,8 +50,8 @@ export class EmailService {
         port: 587,
         secure: false,
         auth: {
-          user: process.env.ETHEREAL_USER || 'test@ethereal.email',
-          pass: process.env.ETHEREAL_PASS || 'test',
+          user: process.env['ETHEREAL_USER'] || 'test@ethereal.email',
+          pass: process.env['ETHEREAL_PASS'] || 'test',
         },
       });
     }
@@ -195,7 +195,7 @@ export class EmailService {
   </div>
 
   <div style="text-align: center; margin-top: 30px;">
-    <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/stocks/${ticker}" 
+    <a href="${process.env['FRONTEND_URL'] || 'http://localhost:3000'}/stocks/${ticker}" 
        style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
       View Full Analysis
     </a>
@@ -203,7 +203,7 @@ export class EmailService {
 
   <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 12px;">
     <p>This is an automated alert from Stockmeter.</p>
-    <p>To manage your alerts, visit your <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/alerts" style="color: #3b82f6;">alerts page</a>.</p>
+    <p>To manage your alerts, visit your <a href="${process.env['FRONTEND_URL'] || 'http://localhost:3000'}/alerts" style="color: #3b82f6;">alerts page</a>.</p>
     <p>&copy; ${new Date().getFullYear()} Stockmeter. All rights reserved.</p>
   </div>
 </body>
@@ -258,9 +258,9 @@ ${stock.graham?.fairValue ? `- Graham Number: $${stock.graham.fairValue.toFixed(
 
 Reason: ${reason}
 
-View full analysis: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/stocks/${ticker}
+View full analysis: ${process.env['FRONTEND_URL'] || 'http://localhost:3000'}/stocks/${ticker}
 
-To manage your alerts, visit: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/alerts
+To manage your alerts, visit: ${process.env['FRONTEND_URL'] || 'http://localhost:3000'}/alerts
 
 ---
 This is an automated alert from Stockmeter.

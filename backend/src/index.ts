@@ -1,75 +1,85 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import passport from './config/passport';
-import authRoutes from './routes/auth.routes';
-import stocksRoutes from './routes/stocks.routes';
-import watchlistRoutes from './routes/watchlist.routes';
-import paymentRoutes from './routes/payment.routes';
-import webhookRoutes from './routes/webhook.routes';
-import alertRoutes from './routes/alert.routes';
-import exportRoutes from './routes/export.routes';
-import userRoutes from './routes/user.routes';
-import currencyRoutes from './routes/currency.routes';
-import { ProviderManager } from './adapters';
-import { initializeAlertScheduler } from './services/alert-scheduler.service';
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000' }));
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Compression middleware
 app.use(compression());
 
-// Webhook routes need raw body for signature verification
-app.use('/api/payments/webhook/stripe', express.raw({ type: 'application/json' }));
-
-// Regular JSON parsing for other routes
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Initialize Passport
-app.use(passport.initialize());
+// Logging middleware
+app.use(morgan('combined'));
 
 // Health check endpoint
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/stocks', stocksRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/user', watchlistRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/user', paymentRoutes); // For /api/user/subscription endpoint
-app.use('/api/payments', webhookRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api', exportRoutes);
-app.use('/api/currency', currencyRoutes);
+// API routes will be added here
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'Stockmeter API',
+    version: '1.0.0',
+    status: 'running'
+  });
+});
 
-// Error handling middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.originalUrl
+  });
+});
+
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
     error: {
-      code: err.code || 'INTERNAL_ERROR',
       message: err.message || 'Internal server error',
-      details: err.details || {}
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     }
   });
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  
-  // Initialize alert scheduler
-  const providerManager = new ProviderManager();
-  initializeAlertScheduler(providerManager);
-  console.log('📧 Alert scheduler initialized');
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
 });
 
 export default app;

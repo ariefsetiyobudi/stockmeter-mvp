@@ -1,2 +1,2 @@
 # Middleware directory
-# Express middleware will be added here
+# This directory will contain custom Express middleware

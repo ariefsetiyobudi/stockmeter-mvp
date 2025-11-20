@@ -102,8 +102,8 @@ cd frontend
 npm install
 
 # Copy and configure environment variables
-cp .env.example .env
-# Edit .env with your local configuration
+cp .env.example .env.local
+# Edit .env.local with your local configuration
 
 # Start development server
 npm run dev
@@ -144,7 +144,7 @@ docker build -t stockmeter-frontend:latest .
 
 # Test the image
 docker run -p 3000:3000 \
-  -e NUXT_PUBLIC_API_BASE_URL="http://localhost:3001" \
+  -e NEXT_PUBLIC_API_BASE_URL="http://localhost:3001" \
   stockmeter-frontend:latest
 ```
 
@@ -196,7 +196,7 @@ services:
     depends_on:
       - backend
     environment:
-      NUXT_PUBLIC_API_BASE_URL: http://backend:3001
+      NEXT_PUBLIC_API_BASE_URL: http://backend:3001
       NODE_ENV: production
     ports:
       - "3000:3000"
@@ -376,7 +376,7 @@ gcloud run deploy stockmeter-frontend \
   --min-instances=0 \
   --max-instances=10 \
   --timeout=60s \
-  --set-env-vars="NODE_ENV=production,NUXT_PUBLIC_API_BASE_URL=$BACKEND_URL"
+  --set-env-vars="NODE_ENV=production,NEXT_PUBLIC_API_BASE_URL=$BACKEND_URL"
 ```
 
 ### Step 9: Run Database Migrations
@@ -467,7 +467,7 @@ ALPHA_VANTAGE_API_KEY=...
 ### Frontend Environment Variables
 
 ```bash
-NUXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com
+NEXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com
 ```
 
 ## CI/CD Pipeline

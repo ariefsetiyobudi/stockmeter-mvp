@@ -32,7 +32,7 @@ export class PaymentService {
   ): Promise<PaymentSession> {
     try {
       const plan = subscriptionPlans[planType];
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env['FRONTEND_URL'] || 'http://localhost:3000';
 
       // Create a Checkout Session
       const session = await stripeClient.checkout.sessions.create({
@@ -85,7 +85,7 @@ export class PaymentService {
   ): Promise<PaymentSession> {
     try {
       const plan = subscriptionPlans[planType];
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env['FRONTEND_URL'] || 'http://localhost:3000';
 
       // Create a subscription plan first (in production, you'd create this once and reuse)
       const planRequest = new paypal.orders.OrdersCreateRequest();
@@ -162,9 +162,9 @@ export class PaymentService {
           },
         ],
         callbacks: {
-          finish: `${process.env.FRONTEND_URL}/payment/success`,
-          error: `${process.env.FRONTEND_URL}/payment/cancel`,
-          pending: `${process.env.FRONTEND_URL}/payment/pending`,
+          finish: `${process.env['FRONTEND_URL']}/payment/success`,
+          error: `${process.env['FRONTEND_URL']}/payment/cancel`,
+          pending: `${process.env['FRONTEND_URL']}/payment/pending`,
         },
         custom_field1: userId,
         custom_field2: planType,

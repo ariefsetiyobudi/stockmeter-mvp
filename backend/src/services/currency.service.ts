@@ -52,7 +52,7 @@ export class CurrencyService {
    * Using exchangerate-api.com (free tier: 1,500 requests/month)
    */
   private async fetchExchangeRates(): Promise<ExchangeRates> {
-    const apiKey = process.env.EXCHANGE_RATE_API_KEY;
+    const apiKey = process.env['EXCHANGE_RATE_API_KEY'];
     
     if (!apiKey) {
       logger.warn('EXCHANGE_RATE_API_KEY not set, using fallback rates');

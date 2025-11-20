@@ -30,7 +30,7 @@ npm run prisma:migrate
 # Setup frontend (in new terminal)
 cd frontend
 npm install
-cp .env.example .env
+cp .env.example .env.local
 ```
 
 ### 2. Configure Environment
@@ -48,9 +48,9 @@ FMP_API_KEY="your-key-here"
 ALPHA_VANTAGE_API_KEY="your-key-here"
 ```
 
-Edit `frontend/.env`:
+Edit `frontend/.env.local`:
 ```bash
-NUXT_PUBLIC_API_BASE_URL="http://localhost:3001"
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3001"
 ```
 
 ### 3. Start Development Servers
@@ -107,7 +107,7 @@ npm run test:coverage      # Coverage report
 # Development
 npm run dev                # Start dev server
 npm run build             # Build for production
-npm run preview           # Preview production build
+npm start                 # Start production server
 
 # Testing
 npm test                  # Run tests
@@ -209,11 +209,11 @@ stockmeter-mvp/
 │   │   ├── adapters/    # External APIs
 │   │   └── middleware/  # Express middleware
 │   └── prisma/          # Database schema
-├── frontend/            # Nuxt 4 app
-│   ├── pages/          # Vue pages
-│   ├── components/     # Vue components
-│   ├── composables/    # Vue composables
-│   └── stores/         # Pinia stores
+├── frontend/            # Next.js 16 app
+│   ├── app/            # Next.js App Router pages
+│   ├── components/     # React components
+│   ├── hooks/          # Custom React hooks
+│   └── stores/         # Zustand stores
 └── docker-compose.yml  # Local infrastructure
 ```
 
@@ -253,7 +253,7 @@ stockmeter-mvp/
 - `SENDGRID_API_KEY` - SendGrid API key
 
 ### Frontend Required
-- `NUXT_PUBLIC_API_BASE_URL` - Backend API URL
+- `NEXT_PUBLIC_API_BASE_URL` - Backend API URL
 
 ## License
 

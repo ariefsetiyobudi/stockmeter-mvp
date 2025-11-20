@@ -5,6 +5,7 @@ import { getCacheService } from '../services/cache.service';
 import CacheKeys from '../utils/cache-keys';
 import { requireAuth, requirePro } from '../middleware/auth.middleware';
 import ValuationService from '../services/valuation.service';
+import { StockSearchResult, StockProfile, StockPrice } from '../types';
 
 // Initialize services
 const providerManager = new ProviderManager();
@@ -42,7 +43,7 @@ router.get('/search', async (req: Request, res: Response): Promise<void> => {
     // Search via provider manager with failover
     const results = await providerManager.executeWithFailover(
       (provider) => provider.searchStocks(query)
-    );
+    ) as StockSearchResult[];
 
     // Limit to 20 results
     const limitedResults = results.slice(0, 20);
@@ -115,11 +116,14 @@ router.get('/:ticker', async (req: Request, res: Response): Promise<void> => {
       ),
     ]);
 
+    const typedProfile = profile as StockProfile;
+    const typedPrice = price as StockPrice;
+
     const result = {
-      ...profile,
-      currentPrice: price.price,
-      currency: price.currency,
-      priceTimestamp: price.timestamp,
+      ...typedProfile,
+      currentPrice: typedPrice.price,
+      currency: typedPrice.currency,
+      priceTimestamp: typedPrice.timestamp,
     };
 
     // Cache for 5 minutes (300 seconds)

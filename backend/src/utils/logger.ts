@@ -16,7 +16,7 @@ export const createLogger = (context?: string) => {
   );
 
   return winston.createLogger({
-    level: process.env.LOG_LEVEL || 'info',
+    level: process.env['LOG_LEVEL'] || 'info',
     format,
     transports: [
       new winston.transports.Console({

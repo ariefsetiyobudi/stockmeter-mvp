@@ -6,7 +6,7 @@ import { ProviderManager } from '../adapters/provider-manager';
 import ValuationService from '../services/valuation.service';
 import { getCacheService } from '../services/cache.service';
 import CacheKeys from '../utils/cache-keys';
-import { FairValueResult } from '../types';
+import { FairValueResult, StockPrice } from '../types';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -75,6 +75,7 @@ router.get('/watchlist', requireAuth, async (req: Request, res: Response): Promi
           }
 
           const price = await pricePromise;
+          const typedPrice = price as StockPrice;
 
           // Calculate average fair value from all models
           const fairValues = [
@@ -93,11 +94,11 @@ router.get('/watchlist', requireAuth, async (req: Request, res: Response): Promi
           return {
             ticker: item.ticker,
             addedAt: item.createdAt,
-            currentPrice: price.price,
-            currency: price.currency,
+            currentPrice: typedPrice.price,
+            currency: typedPrice.currency,
             avgFairValue,
             valuationStatus: fairValueResult.valuationStatus,
-            priceTimestamp: price.timestamp,
+            priceTimestamp: typedPrice.timestamp,
           };
         } catch (error: any) {
           // If enrichment fails for a stock, return basic info

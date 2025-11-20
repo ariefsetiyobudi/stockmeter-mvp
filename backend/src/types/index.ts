@@ -1,4 +1,27 @@
-// Common types and interfaces
+// Global type definitions for the Stockmeter backend
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+  meta?: {
+    timestamp: string;
+    requestId?: string;
+  };
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
 export interface User {
   id: string;
@@ -6,7 +29,10 @@ export interface User {
   name: string;
   subscriptionStatus: 'free' | 'pro' | 'expired';
   subscriptionExpiry: Date | null;
+  languagePreference: string;
+  currencyPreference: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface AuthResult {
@@ -15,16 +41,7 @@ export interface AuthResult {
   refreshToken: string;
 }
 
-export type PaymentProvider = 'stripe' | 'paypal' | 'midtrans';
-
-export interface SubscriptionPlan {
-  type: 'monthly' | 'yearly';
-  price: number;
-  currency: string;
-}
-
-// Financial Data Provider Types
-
+// Financial data types
 export interface StockSearchResult {
   ticker: string;
   name: string;
@@ -74,26 +91,18 @@ export interface FinancialStatements {
 export interface IndustryPeer {
   ticker: string;
   name: string;
-  sector: string;
-  industry: string;
   marketCap: number;
-  peRatio: number | null;
-  pbRatio: number | null;
-  psRatio: number | null;
+  pe: number;
+  pb: number;
+  ps: number;
+  peRatio?: number | null;
+  pbRatio?: number | null;
+  psRatio?: number | null;
+  sector?: string;
+  industry?: string;
 }
 
-// Financial Data Provider Interface
-
-export interface IFinancialDataProvider {
-  searchStocks(query: string): Promise<StockSearchResult[]>;
-  getStockProfile(ticker: string): Promise<StockProfile>;
-  getStockPrice(ticker: string): Promise<StockPrice>;
-  getFinancials(ticker: string, period: 'annual' | 'quarterly'): Promise<FinancialStatements>;
-  getIndustryPeers(ticker: string): Promise<IndustryPeer[]>;
-}
-
-// Valuation Types
-
+// Valuation types
 export interface DCFResult {
   fairValue: number;
   assumptions: {
@@ -101,7 +110,7 @@ export interface DCFResult {
     wacc: number;
     terminalGrowthRate: number;
     projectionYears: number;
-    fcfMargin: number;
+    fcfMargin?: number;
   };
   projectedCashFlows: number[];
 }
@@ -151,12 +160,88 @@ export interface FairValueResult {
   calculatedAt: Date;
 }
 
-// Valuation Service Interface
+// Payment types
+export interface SubscriptionPlan {
+  type: 'monthly' | 'yearly';
+  price: number;
+  currency: string;
+}
 
-export interface IValuationService {
-  calculateDCF(ticker: string, financials: FinancialStatements, profile: StockProfile): Promise<DCFResult | null>;
-  calculateDDM(ticker: string, financials: FinancialStatements, profile: StockProfile): Promise<DDMResult | null>;
-  calculateRelativeValue(ticker: string, financials: FinancialStatements, peers: IndustryPeer[], profile: StockProfile): Promise<RelativeValueResult | null>;
-  calculateGrahamNumber(ticker: string, financials: FinancialStatements, profile: StockProfile): Promise<GrahamResult | null>;
-  calculateAllModels(ticker: string): Promise<FairValueResult>;
+export interface PaymentSession {
+  sessionId: string;
+  checkoutUrl: string;
+}
+
+export type PaymentProvider = 'stripe' | 'paypal' | 'midtrans';
+
+export interface SubscriptionStatus {
+  status: 'free' | 'pro' | 'expired';
+  expiryDate: Date | null;
+  autoRenew: boolean;
+}
+
+// Alert types
+export interface AlertConfig {
+  ticker: string;
+  thresholdType: 'undervalued' | 'overvalued' | 'fair';
+  thresholdValue: number;
+}
+
+export interface Alert {
+  id: string;
+  userId: string;
+  ticker: string;
+  thresholdType: string;
+  thresholdValue: number;
+  status: 'active' | 'inactive';
+  createdAt: Date;
+}
+
+// Error types
+export class AppError extends Error {
+  constructor(
+    public statusCode: number,
+    public override message: string,
+    public isOperational: boolean = true
+  ) {
+    super(message);
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+export class ValidationError extends AppError {
+  constructor(message: string) {
+    super(400, message);
+  }
+}
+
+export class AuthenticationError extends AppError {
+  constructor(message: string = 'Authentication failed') {
+    super(401, message);
+  }
+}
+
+export class AuthorizationError extends AppError {
+  constructor(message: string = 'Insufficient permissions') {
+    super(403, message);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(resource: string) {
+    super(404, `${resource} not found`);
+  }
+}
+
+export class RateLimitError extends AppError {
+  constructor(message: string = 'Rate limit exceeded') {
+    super(429, message);
+  }
+}
+
+export class ExternalServiceError extends AppError {
+  constructor(service: string, message: string) {
+    super(503, `${service} error: ${message}`);
+  }
 }
