@@ -31,11 +31,12 @@ export class ProviderManager {
 
   constructor() {
     // Initialize providers in priority order
-    // FMP first (stable API working), then Twelve Data, Yahoo Finance, Alpha Vantage last (rate limited)
+    // FMP first (stable API working well), Yahoo Finance second (has crumb auth but may be blocked),
+    // Twelve Data third, Alpha Vantage last (rate limited)
     this.providers = [
       { name: 'Financial Modeling Prep', provider: new FMPProvider() },
-      { name: 'Twelve Data', provider: new TwelveDataProvider() },
       { name: 'Yahoo Finance', provider: new YahooFinanceProvider() },
+      { name: 'Twelve Data', provider: new TwelveDataProvider() },
       { name: 'Alpha Vantage', provider: new AlphaVantageProvider() },
     ];
 

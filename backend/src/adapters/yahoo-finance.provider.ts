@@ -9,30 +9,188 @@ import {
 } from '../types';
 import { logger } from '../utils/logger';
 
+interface YahooCrumbData {
+  crumb: string;
+  cookie: string;
+  expiresAt: number;
+}
+
 export class YahooFinanceProvider {
   private client: AxiosInstance;
   private baseUrl = 'https://query2.finance.yahoo.com';
+  private crumbData: YahooCrumbData | null = null;
+  private crumbRefreshInProgress: Promise<void> | null = null;
 
   constructor() {
     this.client = axios.create({
       baseURL: this.baseUrl,
       timeout: 10000,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
+  }
+
+  /**
+   * Get or refresh the crumb and cookie for Yahoo Finance authentication
+   */
+  private async getCrumb(): Promise<YahooCrumbData> {
+    // If crumb is valid and not expired, return it
+    if (this.crumbData && this.crumbData.expiresAt > Date.now()) {
+      return this.crumbData;
+    }
+
+    // If refresh is already in progress, wait for it
+    if (this.crumbRefreshInProgress) {
+      await this.crumbRefreshInProgress;
+      if (this.crumbData) {
+        return this.crumbData;
+      }
+    }
+
+    // Start refresh process
+    this.crumbRefreshInProgress = this.refreshCrumb();
+    await this.crumbRefreshInProgress;
+    this.crumbRefreshInProgress = null;
+
+    if (!this.crumbData) {
+      throw new Error('Failed to obtain Yahoo Finance crumb');
+    }
+
+    return this.crumbData;
+  }
+
+  /**
+   * Refresh the crumb and cookie from Yahoo Finance
+   */
+  private async refreshCrumb(): Promise<void> {
+    try {
+      logger.info('Yahoo Finance: Refreshing crumb and cookie');
+
+      // Step 1: Get cookie from Yahoo Finance homepage with full browser headers
+      const homeResponse = await axios.get('https://finance.yahoo.com', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'none',
+          'Cache-Control': 'max-age=0',
+        },
+        maxRedirects: 5,
+        validateStatus: () => true, // Accept any status code
+      });
+
+      logger.debug(`Yahoo Finance: Homepage response status: ${homeResponse.status}`);
+
+      // Extract cookies from response
+      const cookies = homeResponse.headers['set-cookie'];
+      if (!cookies || cookies.length === 0) {
+        logger.warn('Yahoo Finance: No cookies in response headers, trying alternative approach');
+        
+        // Alternative: Try to get crumb without cookie (some endpoints might work)
+        try {
+          const directCrumbResponse = await axios.get('https://query2.finance.yahoo.com/v1/test/getcrumb', {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+            validateStatus: () => true,
+          });
+          
+          if (directCrumbResponse.status === 200 && directCrumbResponse.data) {
+            logger.info('Yahoo Finance: Got crumb without cookie');
+            this.crumbData = {
+              crumb: directCrumbResponse.data,
+              cookie: '',
+              expiresAt: Date.now() + 3600000,
+            };
+            return;
+          }
+        } catch (e) {
+          logger.debug('Yahoo Finance: Direct crumb request also failed');
+        }
+        
+        throw new Error('No cookies received from Yahoo Finance and direct crumb request failed');
+      }
+
+      // Combine all cookies into a single cookie string
+      const cookieString = cookies
+        .map(cookie => cookie.split(';')[0])
+        .join('; ');
+
+      logger.info(`Yahoo Finance: Obtained ${cookies.length} cookies`);
+
+      // Step 2: Get crumb using the cookie
+      const crumbResponse = await axios.get('https://query2.finance.yahoo.com/v1/test/getcrumb', {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Cookie': cookieString,
+          'Accept': '*/*',
+        },
+        validateStatus: () => true, // Accept any status code
+      });
+
+      logger.debug(`Yahoo Finance: Crumb response status: ${crumbResponse.status}`);
+
+      if (crumbResponse.status !== 200) {
+        logger.error(`Yahoo Finance: Crumb request failed with status ${crumbResponse.status}`, crumbResponse.data);
+        throw new Error(`Crumb request failed with status ${crumbResponse.status}`);
+      }
+
+      const crumb = crumbResponse.data;
+      if (!crumb || typeof crumb !== 'string' || crumb.length === 0) {
+        logger.error('Yahoo Finance: Invalid crumb received:', crumb);
+        throw new Error('Invalid crumb received from Yahoo Finance');
+      }
+
+      logger.info(`Yahoo Finance: Successfully obtained crumb: ${crumb.substring(0, 10)}...`);
+
+      // Store crumb data with 1 hour expiration
+      this.crumbData = {
+        crumb,
+        cookie: cookieString,
+        expiresAt: Date.now() + 3600000, // 1 hour
+      };
+    } catch (error: any) {
+      logger.error('Yahoo Finance: Failed to refresh crumb:', error.message, error.response?.data || '');
+      this.crumbData = null;
+      throw error;
+    }
+  }
+
+  /**
+   * Make an authenticated request to Yahoo Finance API
+   */
+  private async makeAuthenticatedRequest(url: string, params: any = {}): Promise<any> {
+    const crumbData = await this.getCrumb();
+
+    const response = await this.client.get(url, {
+      params: {
+        ...params,
+        crumb: crumbData.crumb,
+      },
+      headers: {
+        'Cookie': crumbData.cookie,
+      },
+    });
+
+    return response;
   }
 
   async searchStocks(query: string): Promise<StockSearchResult[]> {
     try {
       logger.info(`Yahoo Finance: Searching stocks with query: ${query}`);
       
-      const response = await this.client.get('/v1/finance/search', {
-        params: {
-          q: query,
-          quotesCount: 20,
-          newsCount: 0,
-        },
+      const response = await this.makeAuthenticatedRequest('/v1/finance/search', {
+        q: query,
+        quotesCount: 20,
+        newsCount: 0,
       });
 
       const quotes = response.data?.quotes || [];
@@ -56,10 +214,8 @@ export class YahooFinanceProvider {
     try {
       logger.info(`Yahoo Finance: Fetching profile for ${ticker}`);
       
-      const response = await this.client.get('/v10/finance/quoteSummary/' + ticker, {
-        params: {
-          modules: 'assetProfile,summaryProfile,price',
-        },
+      const response = await this.makeAuthenticatedRequest('/v10/finance/quoteSummary/' + ticker, {
+        modules: 'assetProfile,summaryProfile,price',
       });
 
       const result = response.data?.quoteSummary?.result?.[0];
@@ -90,11 +246,9 @@ export class YahooFinanceProvider {
     try {
       logger.info(`Yahoo Finance: Fetching price for ${ticker}`);
       
-      const response = await this.client.get('/v8/finance/chart/' + ticker, {
-        params: {
-          interval: '1d',
-          range: '1d',
-        },
+      const response = await this.makeAuthenticatedRequest('/v8/finance/chart/' + ticker, {
+        interval: '1d',
+        range: '1d',
       });
 
       const result = response.data?.chart?.result?.[0];
@@ -129,10 +283,8 @@ export class YahooFinanceProvider {
         ? 'incomeStatementHistory,balanceSheetHistory,cashflowStatementHistory,defaultKeyStatistics'
         : 'incomeStatementHistoryQuarterly,balanceSheetHistoryQuarterly,cashflowStatementHistoryQuarterly,defaultKeyStatistics';
 
-      const response = await this.client.get('/v10/finance/quoteSummary/' + ticker, {
-        params: {
-          modules: modules,
-        },
+      const response = await this.makeAuthenticatedRequest('/v10/finance/quoteSummary/' + ticker, {
+        modules: modules,
       });
 
       const result = response.data?.quoteSummary?.result?.[0];
@@ -237,10 +389,8 @@ export class YahooFinanceProvider {
           
           if (peerProfile.industry === profile.industry || peerProfile.sector === profile.sector) {
             // Get valuation ratios
-            const response = await this.client.get('/v10/finance/quoteSummary/' + result.ticker, {
-              params: {
-                modules: 'defaultKeyStatistics,summaryDetail',
-              },
+            const response = await this.makeAuthenticatedRequest('/v10/finance/quoteSummary/' + result.ticker, {
+              modules: 'defaultKeyStatistics,summaryDetail',
             });
 
             const data = response.data?.quoteSummary?.result?.[0];
