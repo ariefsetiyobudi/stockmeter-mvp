@@ -196,7 +196,7 @@ export default function SubscriptionModal({
                         }`}
                       >
                         <span className="text-3xl mr-4">{provider.logo}</span>
-                        <div className="flex-grow text-left">
+                        <div className="grow text-left">
                           <div className="font-semibold text-gray-900">
                             {provider.name}
                           </div>

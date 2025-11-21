@@ -91,7 +91,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header - Requirements: 12.1, 12.2 */}
         <div className="text-center mb-8 sm:mb-12">
@@ -151,10 +151,10 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <ul className="space-y-4 mb-8 flex-grow">
+            <ul className="space-y-4 mb-8 grow">
               {freePlan.features.map((feature, index) => (
                 <li key={index} className="flex items-start">
-                  <CheckIcon className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <CheckIcon className="h-5 w-5 text-green-500 mr-3 mt-0.5 shrink-0" />
                   <span className="text-gray-700">{feature}</span>
                 </li>
               ))}
@@ -209,10 +209,10 @@ export default function PricingPage() {
               )}
             </div>
 
-            <ul className="space-y-4 mb-8 flex-grow">
+            <ul className="space-y-4 mb-8 grow">
               {proPlan.features.map((feature, index) => (
                 <li key={index} className="flex items-start">
-                  <CheckIcon className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <CheckIcon className="h-5 w-5 text-green-500 mr-3 mt-0.5 shrink-0" />
                   <span className="text-gray-700">{feature}</span>
                 </li>
               ))}
@@ -283,7 +283,7 @@ export default function PricingPage() {
         </div>
 
         {/* CTA Section - Requirements: 12.1, 12.2 */}
-        <div className="mt-12 sm:mt-20 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl p-6 sm:p-12 text-center">
+        <div className="mt-12 sm:mt-20 bg-linear-to-r from-green-600 to-green-700 rounded-2xl p-6 sm:p-12 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
             Ready to make smarter investment decisions?
           </h2>

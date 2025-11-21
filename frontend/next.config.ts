@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
   // Standalone output for Docker deployment (Requirements: 19.2)
-  output: 'standalone',
+  // output: 'standalone', // Disabled for development
   
   // Enable experimental features for Next.js 16
   experimental: {
@@ -21,7 +21,20 @@ const nextConfig: NextConfig = {
   
   // Image optimization (Requirements: 12.4)
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+    ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [320, 420, 640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

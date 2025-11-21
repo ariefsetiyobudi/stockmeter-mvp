@@ -47,7 +47,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes will be added here
+// Import routes
+import authRoutes from './routes/auth.routes';
+import stocksRoutes from './routes/stocks.routes';
+import userRoutes from './routes/user.routes';
+import watchlistRoutes from './routes/watchlist.routes';
+import alertRoutes from './routes/alert.routes';
+import paymentRoutes from './routes/payment.routes';
+import exportRoutes from './routes/export.routes';
+import webhookRoutes from './routes/webhook.routes';
+import currencyRoutes from './routes/currency.routes';
+
+// API routes
 app.get('/api', (req, res) => {
   res.json({
     message: 'Stockmeter API',
@@ -56,8 +67,19 @@ app.get('/api', (req, res) => {
   });
 });
 
+// Register routes
+app.use('/auth', authRoutes);
+app.use('/api/stocks', stocksRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/export', exportRoutes);
+app.use('/api/webhooks', webhookRoutes);
+app.use('/api/currency', currencyRoutes);
+
 // 404 handler
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     error: 'Route not found',
     path: req.originalUrl

@@ -1,3 +1,8 @@
+/**
+ * This middleware handles i18n routing and authentication checks.
+ * Note: Next.js 16 warns about "middleware" vs "proxy" convention,
+ * but this is for request handling (i18n/auth), not HTTP proxying.
+ */
 import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -28,14 +33,16 @@ const publicRoutes = [
 const intlMiddleware = createMiddleware({
   locales,
   defaultLocale: 'en',
-  localePrefix: 'as-needed', // Don't add locale prefix for default locale
+  localePrefix: 'always', // Always add locale prefix to avoid redirect loops
 });
 
 export function middleware(request: NextRequest) {
+  // Apply i18n middleware first
+  const response = intlMiddleware(request as any);
+  
   const { pathname } = request.nextUrl;
   
   // Get authentication status from cookies
-  // The auth store uses httpOnly cookies set by the backend
   const accessToken = request.cookies.get('accessToken')?.value;
   const isAuthenticated = !!accessToken;
   
@@ -44,27 +51,21 @@ export function middleware(request: NextRequest) {
   
   // Check if the current path is protected
   const isProtectedRoute = protectedRoutes.some(route => pathnameWithoutLocale.startsWith(route));
-  const isProRoute = proRoutes.some(route => pathnameWithoutLocale.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathnameWithoutLocale.startsWith(route));
   
   // Redirect to login if accessing protected route without authentication
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/en/login', request.url);
     loginUrl.searchParams.set('redirect', pathnameWithoutLocale);
     return NextResponse.redirect(loginUrl);
   }
   
   // Redirect authenticated users away from public routes (login/register)
   if (isPublicRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/en', request.url));
   }
   
-  // For Pro routes, we'll check subscription status on the page itself
-  // since we need to fetch user data from the API
-  // The middleware only handles authentication, not authorization
-  
-  // Apply i18n middleware
-  return intlMiddleware(request as any);
+  return response;
 }
 
 // Configure which routes the middleware should run on

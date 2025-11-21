@@ -9,9 +9,10 @@ import { logger } from '../utils/logger';
 import { YahooFinanceProvider } from './yahoo-finance.provider';
 import { FMPProvider } from './fmp.provider';
 import { AlphaVantageProvider } from './alpha-vantage.provider';
+import { TwelveDataProvider } from './twelve-data.provider';
 
 // Type alias for financial data providers
-type IFinancialDataProvider = YahooFinanceProvider | FMPProvider | AlphaVantageProvider;
+type IFinancialDataProvider = YahooFinanceProvider | FMPProvider | AlphaVantageProvider | TwelveDataProvider;
 
 interface ProviderHealth {
   name: string;
@@ -34,6 +35,7 @@ export class ProviderManager {
       { name: 'Yahoo Finance', provider: new YahooFinanceProvider() },
       { name: 'Financial Modeling Prep', provider: new FMPProvider() },
       { name: 'Alpha Vantage', provider: new AlphaVantageProvider() },
+      { name: 'Twelve Data', provider: new TwelveDataProvider() },
     ];
 
     // Initialize health status for each provider

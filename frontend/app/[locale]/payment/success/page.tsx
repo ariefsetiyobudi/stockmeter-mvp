@@ -36,7 +36,7 @@ export default function PaymentSuccessPage() {
   }, [checkAuth]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-linear-to-b from-green-50 to-white flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
         {/* Success Icon */}
         <div className="text-center mb-8">
@@ -114,23 +114,23 @@ export default function PaymentSuccessPage() {
                 </h3>
                 <ul className="space-y-2 text-sm text-green-800">
                   <li className="flex items-start">
-                    <CheckCircleIcon className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
                     <span>Detailed model breakdowns with all assumptions</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircleIcon className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
                     <span>Compare up to 50 stocks side-by-side</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircleIcon className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
                     <span>Unlimited watchlist stocks</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircleIcon className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
                     <span>Price alerts & email notifications</span>
                   </li>
                   <li className="flex items-start">
-                    <CheckCircleIcon className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
+                    <CheckCircleIcon className="w-5 h-5 mr-2 shrink-0 mt-0.5" />
                     <span>Export data to CSV & PDF</span>
                   </li>
                 </ul>

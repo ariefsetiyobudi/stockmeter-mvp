@@ -133,7 +133,7 @@ export default function WatchlistPage() {
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  isAtLimit ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gradient-to-r from-green-400 to-green-600'
+                  isAtLimit ? 'bg-linear-to-r from-yellow-400 to-yellow-600' : 'bg-linear-to-r from-green-400 to-green-600'
                 }`}
                 style={{ width: `${limitPercentage}%` }}
               />
@@ -143,9 +143,9 @@ export default function WatchlistPage() {
 
         {/* Upgrade Prompt for Free Users at Limit (Requirement 5.4) - Requirements: 12.1, 12.2 */}
         {!isPro && isAtLimit && (
-          <div className="mb-4 sm:mb-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg p-4 sm:p-6">
+          <div className="mb-4 sm:mb-6 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-lg p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <svg className="w-10 h-10 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"

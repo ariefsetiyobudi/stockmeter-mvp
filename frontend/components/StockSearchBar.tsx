@@ -126,7 +126,7 @@ export default function StockSearchBar({
                             {result.name}
                           </div>
                         </div>
-                        <div className="ml-2 sm:ml-4 text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
+                        <div className="ml-2 sm:ml-4 text-xs text-gray-500 whitespace-nowrap shrink-0">
                           {result.exchange}
                         </div>
                       </div>

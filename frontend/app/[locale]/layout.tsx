@@ -1,7 +1,6 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
 import { Toaster } from 'react-hot-toast';
 import { Providers } from '@/lib/providers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -17,12 +16,6 @@ export const metadata: Metadata = {
   description: 'Calculate fair value of stocks using multiple valuation models including DCF, DDM, P/E ratios, and Graham Number.',
   keywords: 'stock valuation, DCF, dividend discount model, Graham number, financial analysis',
   authors: [{ name: 'Stockmeter Team' }],
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
   robots: 'index, follow',
   openGraph: {
     title: 'Stockmeter - Automated Stock Valuation',
@@ -30,8 +23,16 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
   },
-  themeColor: '#000000',
   manifest: '/manifest.json',
+};
+
+// Viewport configuration (Next.js 14+ requirement)
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#000000',
 };
 
 type Props = {
@@ -45,14 +46,13 @@ export default async function LocaleLayout({
 }: Props) {
   const { locale } = await params;
   
-  // Providing all messages to the client
-  // side is the easiest way to get started
-  const messages = await getMessages();
+  // Load messages directly from the locale file
+  const messages = (await import(`../../locales/${locale}.json`)).default;
 
   return (
     <html lang={locale}>
       <body className={inter.className}>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             <ErrorBoundary>
               <WebVitals />

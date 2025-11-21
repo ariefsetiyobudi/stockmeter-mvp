@@ -200,7 +200,7 @@ export default function ProfilePage() {
                       You have access to all premium features
                     </p>
                   </div>
-                  <CheckCircleIcon className="h-6 w-6 text-green-600 flex-shrink-0" />
+                  <CheckCircleIcon className="h-6 w-6 text-green-600 shrink-0" />
                 </div>
 
                 {user.subscriptionExpiry && (
@@ -250,7 +250,7 @@ export default function ProfilePage() {
                       Upgrade to Pro for advanced features
                     </p>
                   </div>
-                  <XCircleIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+                  <XCircleIcon className="h-6 w-6 text-gray-400 shrink-0" />
                 </div>
               </div>
 

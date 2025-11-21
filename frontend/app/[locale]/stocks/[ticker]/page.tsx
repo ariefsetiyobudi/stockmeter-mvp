@@ -94,7 +94,7 @@ export default function StockDetailPage({ params }: StockDetailPageProps) {
     );
   }
 
-  const { currentPrice, dcf, ddm, relativeValue, graham } = fairValueData;
+  const { currentPrice, dcf, ddm, relativeValue, graham } = fairValueData || {};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -189,36 +189,36 @@ export default function StockDetailPage({ params }: StockDetailPageProps) {
             {/* DCF Model */}
             <FairValueCard
               modelName="DCF Model"
-              fairValue={dcf.fairValue}
+              fairValue={dcf?.fairValue ?? null}
               currentPrice={currentPrice}
-              assumptions={dcf.assumptions}
+              assumptions={dcf?.assumptions}
             />
 
             {/* DDM Model */}
             <FairValueCard
               modelName="Dividend Discount Model"
-              fairValue={ddm.applicable ? ddm.fairValue : null}
+              fairValue={ddm?.applicable ? ddm.fairValue : null}
               currentPrice={currentPrice}
-              assumptions={ddm.applicable ? ddm.assumptions : undefined}
+              assumptions={ddm?.applicable ? ddm.assumptions : undefined}
             />
 
             {/* P/E Ratio */}
             <FairValueCard
               modelName="P/E Ratio"
-              fairValue={relativeValue.peRatioFairValue}
+              fairValue={relativeValue?.peRatioFairValue ?? null}
               currentPrice={currentPrice}
               assumptions={{
-                companyPE: relativeValue.companyMetrics.pe,
-                industryMedianPE: relativeValue.industryMedians.pe,
+                companyPE: relativeValue?.companyMetrics?.pe,
+                industryMedianPE: relativeValue?.industryMedians?.pe,
               }}
             />
 
             {/* Graham Number */}
             <FairValueCard
               modelName="Graham Number"
-              fairValue={graham.applicable ? graham.fairValue : null}
+              fairValue={graham?.applicable ? graham.fairValue : null}
               currentPrice={currentPrice}
-              assumptions={graham.applicable ? graham.assumptions : undefined}
+              assumptions={graham?.applicable ? graham.assumptions : undefined}
             />
           </div>
         </div>
@@ -232,11 +232,11 @@ export default function StockDetailPage({ params }: StockDetailPageProps) {
             <div>
               <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">P/B Ratio Fair Value</h4>
               <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                ${relativeValue.pbRatioFairValue.toFixed(2)}
+                ${relativeValue?.pbRatioFairValue?.toFixed(2) ?? 'N/A'}
               </div>
               <div className="text-xs sm:text-sm text-gray-600">
-                Company P/B: {relativeValue.companyMetrics.pb.toFixed(2)} | 
-                Industry Median: {relativeValue.industryMedians.pb.toFixed(2)}
+                Company P/B: {relativeValue?.companyMetrics?.pb?.toFixed(2) ?? 'N/A'} | 
+                Industry Median: {relativeValue?.industryMedians?.pb?.toFixed(2) ?? 'N/A'}
               </div>
             </div>
 
@@ -244,11 +244,11 @@ export default function StockDetailPage({ params }: StockDetailPageProps) {
             <div>
               <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">P/S Ratio Fair Value</h4>
               <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                ${relativeValue.psRatioFairValue.toFixed(2)}
+                ${relativeValue?.psRatioFairValue?.toFixed(2) ?? 'N/A'}
               </div>
               <div className="text-xs sm:text-sm text-gray-600">
-                Company P/S: {relativeValue.companyMetrics.ps.toFixed(2)} | 
-                Industry Median: {relativeValue.industryMedians.ps.toFixed(2)}
+                Company P/S: {relativeValue?.companyMetrics?.ps?.toFixed(2) ?? 'N/A'} | 
+                Industry Median: {relativeValue?.industryMedians?.ps?.toFixed(2) ?? 'N/A'}
               </div>
             </div>
           </div>

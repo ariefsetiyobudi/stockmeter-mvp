@@ -30,4 +30,11 @@ declare module '@paypal/checkout-server-sdk' {
       constructor(orderId: string);
     }
   }
+
+  const paypal: {
+    core: typeof core;
+    orders: typeof orders;
+  };
+
+  export default paypal;
 }

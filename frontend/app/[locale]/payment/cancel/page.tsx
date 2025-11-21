@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function PaymentCancelPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
         {/* Cancel Icon */}
         <div className="text-center mb-8">

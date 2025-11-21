@@ -61,7 +61,6 @@ export default function LanguageSwitcher() {
         aria-label="Select language"
       >
         <span className="flex items-center gap-2">
-          <span>{currentLanguage.flag}</span>
           <Select.Value />
         </span>
         <Select.Icon>
