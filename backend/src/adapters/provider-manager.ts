@@ -31,11 +31,12 @@ export class ProviderManager {
 
   constructor() {
     // Initialize providers in priority order
+    // FMP first (stable API working), then Twelve Data, Yahoo Finance, Alpha Vantage last (rate limited)
     this.providers = [
-      { name: 'Yahoo Finance', provider: new YahooFinanceProvider() },
       { name: 'Financial Modeling Prep', provider: new FMPProvider() },
-      { name: 'Alpha Vantage', provider: new AlphaVantageProvider() },
       { name: 'Twelve Data', provider: new TwelveDataProvider() },
+      { name: 'Yahoo Finance', provider: new YahooFinanceProvider() },
+      { name: 'Alpha Vantage', provider: new AlphaVantageProvider() },
     ];
 
     // Initialize health status for each provider
@@ -51,7 +52,8 @@ export class ProviderManager {
       });
     });
 
-    logger.info('ProviderManager initialized with providers:', this.providers.map(p => p.name));
+    logger.info(`ProviderManager initialized with providers: ${this.providers.map(p => p.name).join(', ')}`);
+    logger.info(`Primary provider: ${this.providers[0].name}`);
   }
 
   /**

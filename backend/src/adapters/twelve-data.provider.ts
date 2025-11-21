@@ -63,28 +63,53 @@ export class TwelveDataProvider {
     try {
       logger.info(`Twelve Data: Fetching profile for ${ticker}`);
       
-      // Twelve Data uses /profile endpoint
-      const response = await this.client.get('/profile', {
+      // Try /profile endpoint first (requires paid plan)
+      try {
+        const response = await this.client.get('/profile', {
+          params: {
+            symbol: ticker,
+          },
+        });
+
+        if (response.data?.status !== 'error') {
+          const data = response.data;
+          return {
+            ticker: ticker.toUpperCase(),
+            name: data.name || ticker,
+            exchange: data.exchange || 'N/A',
+            sector: data.sector || 'N/A',
+            industry: data.industry || 'N/A',
+            description: data.description || '',
+            marketCap: data.market_cap || 0,
+            sharesOutstanding: data.shares_outstanding || 0,
+          };
+        }
+      } catch (profileError) {
+        logger.warn(`Twelve Data: /profile endpoint not available (requires paid plan), falling back to /quote`);
+      }
+
+      // Fallback to /quote endpoint for basic info (free tier)
+      const quoteResponse = await this.client.get('/quote', {
         params: {
           symbol: ticker,
         },
       });
 
-      if (response.data?.status === 'error') {
-        throw new Error(response.data.message || 'Twelve Data API error');
+      if (quoteResponse.data?.status === 'error') {
+        throw new Error(quoteResponse.data.message || 'Twelve Data API error');
       }
 
-      const data = response.data;
+      const data = quoteResponse.data;
       
       return {
         ticker: ticker.toUpperCase(),
         name: data.name || ticker,
         exchange: data.exchange || 'N/A',
-        sector: data.sector || 'N/A',
-        industry: data.industry || 'N/A',
-        description: data.description || '',
-        marketCap: data.market_cap || 0,
-        sharesOutstanding: data.shares_outstanding || 0,
+        sector: 'N/A', // Not available in quote endpoint
+        industry: 'N/A', // Not available in quote endpoint
+        description: '',
+        marketCap: 0, // Not available in quote endpoint
+        sharesOutstanding: 0, // Not available in quote endpoint
       };
     } catch (error: any) {
       logger.error(`Twelve Data profile error for ${ticker}:`, error.message);
